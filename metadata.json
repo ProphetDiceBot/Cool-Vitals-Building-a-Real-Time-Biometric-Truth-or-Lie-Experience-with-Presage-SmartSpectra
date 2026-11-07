@@ -1,0 +1,8 @@
+{
+  "name": "Cool Vitals",
+  "description": "Real-time contactless physiological vitals monitor using the Presage SmartSpectra SDK to measure pulse rate, breathing rate, HRV RMSSD, facial expressions, and arterial and respiratory waveforms.",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

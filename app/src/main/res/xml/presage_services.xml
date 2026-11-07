@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@xml/presage_services">
+    <string name="config_version">1</string>
+    <string name="oauth_enabled">false</string>
+</resources>

@@ -1,0 +1,88 @@
+{
+  "entities": {
+    "StatementLog": {
+      "title": "StatementLog",
+      "description": "A recorded spoken statement with real-time SmartSpectra physiological metrics and deception verdict.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "UID of the authenticated user who owns this statement log."
+        },
+        "transcript": {
+          "type": "string",
+          "description": "Speech-to-text transcription of what was said."
+        },
+        "isLie": {
+          "type": "boolean",
+          "description": "True when physiological indicators flag the statement as deceptive."
+        },
+        "deceptionScore": {
+          "type": "integer",
+          "description": "Calculated physiological stress/deception probability score from 0 to 100."
+        },
+        "verdict": {
+          "type": "string",
+          "enum": ["LIE", "TRUTH"],
+          "description": "Deception classification verdict."
+        },
+        "pulseRate": {
+          "type": "integer",
+          "description": "Measured pulse rate in BPM at the time of the statement."
+        },
+        "breathingRate": {
+          "type": "integer",
+          "description": "Measured breathing rate in BPM at the time of the statement."
+        },
+        "hrvRmssd": {
+          "type": "number",
+          "description": "Measured heart rate variability RMSSD in milliseconds."
+        },
+        "expression": {
+          "type": "string",
+          "description": "Detected facial expression and confidence at the time of the statement."
+        },
+        "reason": {
+          "type": "string",
+          "description": "Summary of physiological indicators that triggered the verdict."
+        },
+        "notes": {
+          "type": "string",
+          "description": "Optional reviewer notes attached to the statement log."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the statement was logged (FieldValue.serverTimestamp())."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the statement log was last updated (FieldValue.serverTimestamp())."
+        }
+      },
+      "required": [
+        "userId",
+        "transcript",
+        "isLie",
+        "deceptionScore",
+        "verdict",
+        "pulseRate",
+        "breathingRate",
+        "hrvRmssd",
+        "expression",
+        "reason",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}/statement_logs/{logId}": {
+      "schema": {
+        "$ref": "#/entities/StatementLog"
+      },
+      "description": "Per-user history of spoken statements analyzed for physiological deception indicators."
+    }
+  }
+}

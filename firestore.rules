@@ -1,0 +1,130 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidStatementLog(data, userId) {
+      return data.userId is string &&
+             data.userId == request.auth.uid &&
+             data.userId == userId &&
+             data.transcript is string &&
+             data.transcript.size() >= 1 &&
+             data.transcript.size() <= 1000 &&
+             data.isLie is bool &&
+             data.deceptionScore is int &&
+             data.deceptionScore >= 0 &&
+             data.deceptionScore <= 100 &&
+             data.verdict is string &&
+             (data.verdict == 'LIE' || data.verdict == 'TRUTH') &&
+             data.pulseRate is int &&
+             data.pulseRate >= 0 &&
+             data.pulseRate <= 300 &&
+             data.breathingRate is int &&
+             data.breathingRate >= 0 &&
+             data.breathingRate <= 120 &&
+             (data.hrvRmssd is int || data.hrvRmssd is float) &&
+             data.hrvRmssd >= 0 &&
+             data.hrvRmssd <= 500 &&
+             data.expression is string &&
+             data.expression.size() >= 1 &&
+             data.expression.size() <= 64 &&
+             data.reason is string &&
+             data.reason.size() >= 1 &&
+             data.reason.size() <= 500 &&
+             (!('notes' in data) || data.notes == null || (data.notes is string && data.notes.size() <= 500)) &&
+             data.createdAt is timestamp &&
+             data.createdAt <= request.time &&
+             data.updatedAt is timestamp &&
+             data.updatedAt <= request.time;
+    }
+
+    match /users/{userId}/statement_logs/{logId} {
+      allow get: if isSignedIn() &&
+                    isValidId(userId) &&
+                    isValidId(logId) &&
+                    request.auth.uid == userId &&
+                    existing().userId == request.auth.uid;
+
+      allow list: if isSignedIn() &&
+                     request.auth.uid == userId &&
+                     existing().userId == request.auth.uid;
+
+      allow create: if isSignedIn() &&
+                       isValidId(userId) &&
+                       isValidId(logId) &&
+                       request.auth.uid == userId &&
+                       incoming().keys().hasAll([
+                         'userId',
+                         'transcript',
+                         'isLie',
+                         'deceptionScore',
+                         'verdict',
+                         'pulseRate',
+                         'breathingRate',
+                         'hrvRmssd',
+                         'expression',
+                         'reason',
+                         'createdAt',
+                         'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId',
+                         'transcript',
+                         'isLie',
+                         'deceptionScore',
+                         'verdict',
+                         'pulseRate',
+                         'breathingRate',
+                         'hrvRmssd',
+                         'expression',
+                         'reason',
+                         'notes',
+                         'createdAt',
+                         'updatedAt'
+                       ]) &&
+                       isValidStatementLog(incoming(), userId);
+
+      allow update: if isSignedIn() &&
+                       isValidId(userId) &&
+                       isValidId(logId) &&
+                       request.auth.uid == userId &&
+                       isValidStatementLog(incoming(), userId) &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().diff(existing()).affectedKeys().hasOnly([
+                         'transcript',
+                         'isLie',
+                         'deceptionScore',
+                         'verdict',
+                         'reason',
+                         'notes',
+                         'updatedAt'
+                       ]);
+
+      allow delete: if isSignedIn() &&
+                       isValidId(userId) &&
+                       isValidId(logId) &&
+                       request.auth.uid == userId &&
+                       existing().userId == request.auth.uid;
+    }
+  }
+}
